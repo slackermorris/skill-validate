@@ -1,11 +1,16 @@
+import sys
 import argparse
 
 
+class ImprovedErrorArgumentParser(argparse.ArgumentParser):
+     def error(self, message):
+          print(f"\nError: {message}\n")
+          self.print_help()
+          sys.exit(2)
+
 
 def init_argparse() -> argparse.ArgumentParser:
-     parser = argparse.ArgumentParser(
-          description="Perform 'health' checks on an Agent Skill"
-     )
+     parser = ImprovedErrorArgumentParser()
 
      parser.add_argument('-a', '--action', choices=["usage", "fix"], required=True)
      parser.add_argument('skill_name')
