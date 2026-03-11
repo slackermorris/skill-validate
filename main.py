@@ -13,7 +13,7 @@ def init_argparse() -> argparse.ArgumentParser:
      parser = ImprovedErrorArgumentParser()
 
      parser.add_argument('-a', '--action', choices=["usage", "fix"], required=True)
-     parser.add_argument('skill_name')
+     parser.add_argument('skill-name')
 
      return parser
 
