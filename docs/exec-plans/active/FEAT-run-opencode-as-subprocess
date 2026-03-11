@@ -1,0 +1,52 @@
+# Execution Plan: FEAT-run-opencode-as-subprocess
+
+## Metadata
+
+- **ID**: FEAT-20260312-001
+- **Type**: FEAT
+- **Status**: Active
+- **Created**: 2026-03-12 10:41
+- **Updated**: 2026-03-12 10:43
+- **Estimated Effort**: 5d
+- **Related Issue**: N/A
+- **Related PR**: #1 (filled when opened)
+
+## Goal
+
+The program should run Opencode internally, as a sub process. The prompt fed in through the slash command will be passed to the Opencode agent and the program will listen to an event stream from the agent to determine if the agent utilises skills when handling the prompt.
+
+## Progress Log
+
+- [2026-03-12 10:41] Added execution plan template for tracking progress
+- [2026-03-12 10:42] Initial commit with opencode command for capturing project progress
+- [2026-03-12 10:43] Listening to locally running instance of opencode server
+- [2026-03-12 10:44] Merged pull request #1 for call-opencode-api feature
+- [2026-03-12 10:45] Chore: committed to open PR
+
+## Decision Log
+
+- [2026-03-12 10:41] Decided to use execution plan templates for progress tracking → Provides structured way to monitor feature development
+- [2026-03-12 10:42] Chose to implement opencode command as subprocess → Enables isolation and better control over agent execution
+- [2026-03-12 10:43] Opted to listen to event stream from agent → Allows monitoring of skill utilization during prompt handling
+
+## Associated Work
+
+- **Pull Requests**: #1 (Call opencode API feature)
+- **Commits**: 5a152af (chore: commit to open PR), fdc715d (Merge PR #1), 244cc94 (feature: opencode command), 68fb66c (chore: capture progress), 2156422 (feature: listening to opencode server)
+- **Issues**: N/A
+
+## Checkpoints (Optional but Recommended)
+
+- [x] Basic opencode subprocess implementation (Target: 2026-03-12)
+- [ ] Event stream monitoring for skill usage (Target: 2026-03-13)
+- [ ] Testing and validation of subprocess communication (Target: 2026-03-14)
+
+## Quality Metrics (Optional)
+
+- [Test Coverage]: [Current%] [Target: ≥80%]
+- [Lint Errors]: [Current count] [Target: 0]
+- [Performance]: [Startup time] [Target: <500ms]
+
+## Notes & Blockers
+
+- Daily notes indicate consideration of capturing abandoned experiments for learning purposes
