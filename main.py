@@ -2,6 +2,8 @@ import sys
 import argparse
 import subprocess
 
+OPENCODE_TIMEOUT=120
+
 class ImprovedErrorArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         print(f"\nError: {message}\n")
@@ -29,9 +31,19 @@ def main():
     # does the skill exist inside of the 
 
     listen_to_events()
+# usage: opencode run "prompt" --output-format json
+
+    """
+    Endeavour to boot Opencode and then listen to an event stream and detect whether it is pulling in skills in response to given prompts.    
+    """
 
     try:
-        subprocess.run(['opencode'], timeout=5, check=True)
+        openCodeProcess = subprocess.run(['opencode'], timeout=OPENCODE_TIMEOUT, check=True, shell=True, encoding="utf-8", input="--output-format json --model opencode/nemotron-3-super-free")
+
+
+        # decode the response from openCode
+        openCodeProcess.stdout.decode("utf-8")
+
     except subprocess.TimeoutExpired as exc:
         print(f"Process timed out.\n{exc}")
         raise SystemExit(1, 'Opencode was hanging indefinitely. Timeout hit.')

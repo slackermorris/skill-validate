@@ -22,6 +22,20 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
 - [2026-03-12 10:43] Listening to locally running instance of opencode server
 - [2026-03-12 10:44] Merged pull request #1 for call-opencode-api feature
 - [2026-03-12 10:45] Chore: committed to open PR
+- [2026-03-12 17:42] Worked on subprocess implementation for Opencode agent communication
+- [2026-03-12 17:42] Explored Popen vs run for subprocess management (explicit lifecycle control)
+- [2026-03-12 17:42] Considered argument validation for skill_name existence and eval-set.json presence
+- [2026-03-12 17:42] Planned streaming output approach for agent event monitoring (chunk-by-chunk evaluation)
+- [2026-03-12 17:42] Investigated timeout parameter usage to prevent hanging subprocesses
+- [2026-03-12 17:42] Researched CalledProcessError emission for non-zero exit code handling
+- [2026-03-12 17:42] Examined process oversight options using psutil for running process visibility
+- [2026-03-12 17:42] Considered debug/logging format (--format json) for agent event visibility
+- [2026-03-12 17:42] Planned validation of Opencode command arguments (skill existence, eval-set presence)
+- [2026-03-12 17:42] Designed streaming write approach for results instead of state accumulation
+- [2026-03-12 17:42] Implemented OPENCODE_TIMEOUT constant (120 seconds) in main.py
+- [2026-03-12 17:42] Updated subprocess.run call with shell=True, encoding, and stdin input
+- [2026-03-12 17:42] Added stdout decoding to capture Opencode agent output
+- [2026-03-12 17:42] Added docstring explaining skill usage detection purpose
 
 ## Decision Log
 
@@ -32,14 +46,18 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
 ## Associated Work
 
 - **Pull Requests**: #1 (Call opencode API feature)
-- **Commits**: 5a152af (chore: commit to open PR), fdc715d (Merge PR #1), 244cc94 (feature: opencode command), 68fb66c (chore: capture progress), 2156422 (feature: listening to opencode server)
+- **Commits**: 5a152af (chore: commit to open PR), fdc715d (Merge PR #1), 244cc94 (feature: opencode command), 68fb66c (chore: capture progress), 2156422 (feature: listening to opencode server), afd54f8 (chore: wee clean up of old execution plan), b55f4ea (feature: starting to run child process), dc75037 (chore: exec plan and a small tweak to opencode command)
 - **Issues**: N/A
 
 ## Checkpoints (Optional but Recommended)
 
-- [x] Basic opencode subprocess implementation (Target: 2026-03-12)
-- [ ] Event stream monitoring for skill usage (Target: 2026-03-13)
-- [ ] Testing and validation of subprocess communication (Target: 2026-03-14)
+- [x] Basic opencode subprocess implementation (Target: 2026-03-12) - Completed: Initial implementation with subprocess.Popen exploration
+- [x] Subprocess lifecycle management decision (Target: 2026-03-12) - Completed: Chose Popen over run for explicit lifecycle control
+- [ ] Event stream monitoring for skill usage (Target: 2026-03-13) - In Progress: Planning streaming output approach for agent event monitoring (chunk-by-chunk evaluation)
+- [ ] Argument validation implementation (Target: 2026-03-13) - Pending: Validate skill_name exists in .opencode/skills and eval-set.json presence
+- [ ] Timeout and error handling (Target: 2026-03-13) - Pending: Implement timeout parameter and CalledProcessError for non-zero exit codes
+- [ ] Process oversight capabilities (Target: 2026-03-14) - Pending: Implement psutil integration for running process visibility
+- [ ] Testing and validation of subprocess communication (Target: 2026-03-14) - Pending: End-to-end testing of subprocess communication and skill usage detection
 
 ## Quality Metrics (Optional)
 
@@ -50,3 +68,37 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
 ## Notes & Blockers
 
 - Daily notes indicate consideration of capturing abandoned experiments for learning purposes
+- Reflection: Fundamental consideration needed for interacting with Opencode agent - how to communicate with subprocess
+- Notes & Connections: 
+  - Daily notes workflow: Everything in daily notes, then synthesize for changelogs/execution plans
+  - Double handling concern: Capturing work/decisions in notes vs. capturing in PRs
+  - Failed experiments: Considering capturing abandoned work for learnings (commit learnings without work)
+  - Ideal placement: Command should be in Opencode dot files (.opencode) specific to coding projects
+  - Event listening shift: Moving from client-based to reading from process stdout
+  - Missing functionality: Format on save capability desired
+  - Subprocess approach: Construct command to pass to Opencode subprocess
+  - Process handling: Understanding return codes/exit status, using psutil for process oversight
+  - Timeout management: Using timeout parameter to prevent hanging processes
+  - Error handling: Wanting to emit CalledProcessError for non-zero exit codes
+  - Key insight: subprocess.run() with timeout doesn't auto-kill child process (need Popen)
+  - ANSI color issues: Experiencing color output when timing out processes
+  - Process communication: Need to communicate via streams/I/O with subprocess
+  - Debug/logging: Wanting Agent in debug mode/logging events (--format json)
+  - Event listening goal: Prove can listen to events off Agent using Stream I/O
+  - Streaming approach: Read as stream, evaluate chunks for business logic as they come
+  - Argument validation: Ensuring Opencode command runs with expected arguments
+  - Expected output: Agent boots and sits there, potentially writing events to stdout
+  - Future needs: Pipe to write results as encountered instead of state accumulation
+  - Validation first: Check skill exists, eval-set present nearby
+  - Input handling: Using stdin to pass commands to Opencode process
+  - Capture output issue: capture_output=True prevents Opencode from booting
+  - Background running: Wanting Popen for background execution without terminal hijack
+  - Ideal workflow: Run Opencode as subprocess, feed prompts, listen to output, write eval-results
+  - Configuration issue: Opencode failing due to missing payment/configuration credentials
+  - Blocking problem: Blocking nature prevents stdout reading when agent boots
+  - Creator insight: Wondering how skill creator manages Claude interaction
+  - Fundamental gap: Initially missed consideration of how to actually interact with Opencode agent
+- Blockers: 
+  - Need to ensure skill_name exists in .opencode/skills directory and eval-set.json is present
+  - Payment/configuration credentials may be needed for full Opencode functionality
+  - Current blocking nature prevents stdout reading when agent boots
