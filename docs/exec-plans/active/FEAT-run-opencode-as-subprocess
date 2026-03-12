@@ -6,7 +6,7 @@
 - **Type**: FEAT
 - **Status**: Active
 - **Created**: 2026-03-12 10:41
-- **Updated**: 2026-03-12 10:43
+- **Updated**: 2026-03-12 18:00
 - **Estimated Effort**: 5d
 - **Related Issue**: N/A
 - **Related PR**: #1 (filled when opened)
@@ -36,6 +36,12 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
 - [2026-03-12 17:42] Updated subprocess.run call with shell=True, encoding, and stdin input
 - [2026-03-12 17:42] Added stdout decoding to capture Opencode agent output
 - [2026-03-12 17:42] Added docstring explaining skill usage detection purpose
+- [2026-03-12 18:00] Switched from subprocess.run to subprocess.Popen for explicit lifecycle control
+- [2026-03-12 18:00] Implemented streaming output reading using select.select() for chunk-by-chunk evaluation
+- [2026-03-12 18:00] Added timeout handling with process.kill() for indefinite hanging prevention
+- [2026-03-12 18:00] Implemented stdout polling with poll() check for process completion
+- [2026-03-12 18:00] Added DEVNULL for stderr suppression
+- [2026-03-12 18:00] Updated command structure to use list format with 'run' subcommand
 
 ## Decision Log
 
@@ -46,16 +52,17 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
 ## Associated Work
 
 - **Pull Requests**: #1 (Call opencode API feature)
-- **Commits**: 5a152af (chore: commit to open PR), fdc715d (Merge PR #1), 244cc94 (feature: opencode command), 68fb66c (chore: capture progress), 2156422 (feature: listening to opencode server), afd54f8 (chore: wee clean up of old execution plan), b55f4ea (feature: starting to run child process), dc75037 (chore: exec plan and a small tweak to opencode command)
+- **Commits**: [uncommitted] main.py modified with Popen implementation and streaming
 - **Issues**: N/A
+- **Working Directory**: Branch `jack/feature/hosting-opencode-api-as-a-subprocess` (1 commit ahead of origin)
 
 ## Checkpoints (Optional but Recommended)
 
 - [x] Basic opencode subprocess implementation (Target: 2026-03-12) - Completed: Initial implementation with subprocess.Popen exploration
 - [x] Subprocess lifecycle management decision (Target: 2026-03-12) - Completed: Chose Popen over run for explicit lifecycle control
-- [ ] Event stream monitoring for skill usage (Target: 2026-03-13) - In Progress: Planning streaming output approach for agent event monitoring (chunk-by-chunk evaluation)
+- [x] Event stream monitoring for skill usage (Target: 2026-03-13) - Completed: Implemented streaming with select.select() for chunk-by-chunk evaluation
+- [x] Timeout and error handling (Target: 2026-03-13) - Completed: Implemented timeout with process.kill() and TimeoutExpired exception
 - [ ] Argument validation implementation (Target: 2026-03-13) - Pending: Validate skill_name exists in .opencode/skills and eval-set.json presence
-- [ ] Timeout and error handling (Target: 2026-03-13) - Pending: Implement timeout parameter and CalledProcessError for non-zero exit codes
 - [ ] Process oversight capabilities (Target: 2026-03-14) - Pending: Implement psutil integration for running process visibility
 - [ ] Testing and validation of subprocess communication (Target: 2026-03-14) - Pending: End-to-end testing of subprocess communication and skill usage detection
 
@@ -102,3 +109,5 @@ The program should run Opencode internally, as a sub process. The prompt fed in 
   - Need to ensure skill_name exists in .opencode/skills directory and eval-set.json is present
   - Payment/configuration credentials may be needed for full Opencode functionality
   - Current blocking nature prevents stdout reading when agent boots
+  - capture_output=True in subprocess.run prevents Opencode from booting (needs Popen instead)
+  - Process stdout must be read in real-time to avoid blocking
