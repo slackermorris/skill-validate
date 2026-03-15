@@ -1,0 +1,130 @@
+# Execution Plan: FEAT-run-opencode-as-subprocess
+
+## Metadata
+
+- **ID**: FEAT-20260312-001
+- **Type**: FEAT
+- **Status**: Active
+- **Created**: 2026-03-12 10:41
+- **Updated**: 2026-03-13 10:30
+- **Estimated Effort**: 5d
+- **Related Issue**: N/A
+- **Related PR**: #1 (filled when opened)
+
+## Goal
+
+The program should run Opencode internally, as a sub process. The prompt fed in through the slash command will be passed to the Opencode agent and the program will listen to an event stream from the agent to determine if the agent utilises skills when handling the prompt.
+
+## Progress Log
+
+- [2026-03-12 10:41] Added execution plan template for tracking progress
+- [2026-03-12 10:42] Initial commit with opencode command for capturing project progress
+- [2026-03-12 10:43] Listening to locally running instance of opencode server
+- [2026-03-12 10:44] Merged pull request #1 for call-opencode-api feature
+- [2026-03-12 10:45] Chore: committed to open PR
+- [2026-03-12 17:42] Worked on subprocess implementation for Opencode agent communication
+- [2026-03-12 17:42] Explored Popen vs run for subprocess management (explicit lifecycle control)
+- [2026-03-12 17:42] Considered argument validation for skill_name existence and eval-set.json presence
+- [2026-03-12 17:42] Planned streaming output approach for agent event monitoring (chunk-by-chunk evaluation)
+- [2026-03-12 17:42] Investigated timeout parameter usage to prevent hanging subprocesses
+- [2026-03-12 17:42] Researched CalledProcessError emission for non-zero exit code handling
+- [2026-03-12 17:42] Examined process oversight options using psutil for running process visibility
+- [2026-03-12 17:42] Considered debug/logging format (--format json) for agent event visibility
+- [2026-03-12 17:42] Planned validation of Opencode command arguments (skill existence, eval-set presence)
+- [2026-03-12 17:42] Designed streaming write approach for results instead of state accumulation
+- [2026-03-12 17:42] Implemented OPENCODE_TIMEOUT constant (120 seconds) in main.py
+- [2026-03-12 17:42] Updated subprocess.run call with shell=True, encoding, and stdin input
+- [2026-03-12 17:42] Added stdout decoding to capture Opencode agent output
+- [2026-03-12 17:42] Added docstring explaining skill usage detection purpose
+- [2026-03-12 18:00] Switched from subprocess.run to subprocess.Popen for explicit lifecycle control
+- [2026-03-12 18:00] Implemented streaming output reading using select.select() for chunk-by-chunk evaluation
+- [2026-03-12 18:00] Added timeout handling with process.kill() for indefinite hanging prevention
+- [2026-03-12 18:00] Implemented stdout polling with poll() check for process completion
+- [2026-03-12 18:00] Added DEVNULL for stderr suppression
+- [2026-03-12 18:00] Updated command structure to use list format with 'run' subcommand
+- [2026-03-13 09:48] Confirmed subprocess is working - observed skill "rerender-memo" being pulled in successfully via stdout
+- [2026-03-13 09:48] Researched Popen vs run - Popen spawns non-blocking process (doesn't hijack parent)
+- [2026-03-13 09:48] Implemented line-by-line stdout reading using for line in process.stdout
+- [2026-03-13 09:48] Experimented with select.select() for non-blocking chunk reading (observed chunk sizes: 345-1798 bytes)
+- [2026-03-13 09:48] Confirmed Popen spawns process asynchronously - "Finishing program" prints before opencode completes
+- [2026-03-13 09:48] Tested subprocess.run with --format json and stdout=PIPE for structured output capture
+- [2026-03-13 09:48] Verified stdin=subprocess.DEVNULL runs opencode without TUI boot
+- [2026-03-13 10:28] Compared blocking vs non-blocking behavior between .run and Popen
+
+## Decision Log
+
+- [2026-03-12 10:41] Decided to use execution plan templates for progress tracking → Provides structured way to monitor feature development
+- [2026-03-12 10:42] Chose to implement opencode command as subprocess → Enables isolation and better control over agent execution
+- [2026-03-12 10:43] Opted to listen to event stream from agent → Allows monitoring of skill utilization during prompt handling
+
+## Associated Work
+
+- **Pull Requests**: #1 (Call opencode API feature)
+- **Commits**: e54a25c (feature: reading each line of stdout from the opencode subprocess), d90d5ea (feature: reading each line of stdout from the opencode subprocess)
+- **Issues**: N/A
+- **Working Directory**: Branch `jack/feature/hosting-opencode-api-as-a-subprocess` (2 commits ahead of origin)
+
+## Checkpoints (Optional but Recommended)
+
+- [x] Basic opencode subprocess implementation (Target: 2026-03-12) - Completed: Initial implementation with subprocess.Popen exploration
+- [x] Subprocess lifecycle management decision (Target: 2026-03-12) - Completed: Chose Popen over run for explicit lifecycle control
+- [x] Event stream monitoring for skill usage (Target: 2026-03-13) - Completed: Successfully reading stdout line-by-line, confirmed skill "rerender-memo" pulled in via event stream
+- [x] Timeout and error handling (Target: 2026-03-13) - Completed: Implemented timeout with process.kill() and TimeoutExpired exception
+- [x] Non-blocking process understanding (Target: 2026-03-13) - Completed: Verified Popen spawns asynchronously, tested select() for chunk reading
+- [ ] Argument validation implementation (Target: 2026-03-13) - Pending: Validate skill_name exists in .opencode/skills and eval-set.json presence
+- [ ] Process oversight capabilities (Target: 2026-03-14) - Pending: Implement psutil integration for running process visibility
+- [ ] Testing and validation of subprocess communication (Target: 2026-03-14) - Pending: End-to-end testing of subprocess communication and skill usage detection
+
+## Quality Metrics (Optional)
+
+- [Test Coverage]: [Current%] [Target: ≥80%]
+- [Lint Errors]: [Current count] [Target: 0]
+- [Performance]: [Startup time] [Target: <500ms]
+
+## Notes & Blockers
+
+- Daily notes indicate consideration of capturing abandoned experiments for learning purposes
+- Reflection: Fundamental consideration needed for interacting with Opencode agent - how to communicate with subprocess
+- Notes & Connections: 
+  - Daily notes workflow: Everything in daily notes, then synthesize for changelogs/execution plans
+  - Double handling concern: Capturing work/decisions in notes vs. capturing in PRs
+  - Failed experiments: Considering capturing abandoned work for learnings (commit learnings without work)
+  - Ideal placement: Command should be in Opencode dot files (.opencode) specific to coding projects
+  - Event listening shift: Moving from client-based to reading from process stdout
+  - Missing functionality: Format on save capability desired
+  - Subprocess approach: Construct command to pass to Opencode subprocess
+  - Process handling: Understanding return codes/exit status, using psutil for process oversight
+  - Timeout management: Using timeout parameter to prevent hanging processes
+  - Error handling: Wanting to emit CalledProcessError for non-zero exit codes
+  - Key insight: subprocess.run() with timeout doesn't auto-kill child process (need Popen)
+  - ANSI color issues: Experiencing color output when timing out processes
+  - Process communication: Need to communicate via streams/I/O with subprocess
+  - Debug/logging: Wanting Agent in debug mode/logging events (--format json)
+  - Event listening goal: Prove can listen to events off Agent using Stream I/O
+  - Streaming approach: Read as stream, evaluate chunks for business logic as they come
+  - Argument validation: Ensuring Opencode command runs with expected arguments
+  - Expected output: Agent boots and sits there, potentially writing events to stdout
+  - Future needs: Pipe to write results as encountered instead of state accumulation
+  - Validation first: Check skill exists, eval-set present nearby
+  - Input handling: Using stdin to pass commands to Opencode process
+  - Capture output issue: capture_output=True prevents Opencode from booting
+  - Background running: Wanting Popen for background execution without terminal hijack
+  - Ideal workflow: Run Opencode as subprocess, feed prompts, listen to output, write eval-results
+  - Configuration issue: Opencode failing due to missing payment/configuration credentials
+  - Blocking problem: Blocking nature prevents stdout reading when agent boots
+  - Creator insight: Wondering how skill creator manages Claude interaction
+  - Fundamental gap: Initially missed consideration of how to actually interact with Opencode agent
+  - 2026-03-13 Learning: Popen is non-blocking (process doesn't block parent code), not that I/O is non-blocking
+  - 2026-03-13 Learning: select.select() with timeout avoids blocking indefinitely when reading stdout
+  - 2026-03-13 Learning: Observed chunk sizes when reading stdout (345, 1798, 473, 345, 1052, 469, 41 bytes)
+  - 2026-03-13 Learning: Verified "Finishing program" prints before opencode completes with Popen (async behavior confirmed)
+  - 2026-03-13 Learning: --format json flag provides structured event stream output
+  - 2026-03-13 Learning: stdin=subprocess.DEVNULL runs opencode without TUI boot (cleaner for subprocess)
+  - 2026-03-13 Learning: subprocess.run with stdout=PIPE and --format json captures full output for later parsing
+  - 2026-03-13 Learning: Understanding difference between blocking (.run waits for completion) vs non-blocking (Popen spawns and returns)
+- Blockers: 
+  - Need to ensure skill_name exists in .opencode/skills directory and eval-set.json is present
+  - Payment/configuration credentials may be needed for full Opencode functionality
+  - Current blocking nature prevents stdout reading when agent boots
+  - capture_output=True in subprocess.run prevents Opencode from booting (needs Popen instead)
+  - Process stdout must be read in real-time to avoid blocking

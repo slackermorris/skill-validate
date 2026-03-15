@@ -1,6 +1,7 @@
 # Execution Plan: FEAT-listen-opencode-api-through-sdk
 
 ## Metadata
+
 - **ID**: FEAT-20260312-001
 - **Type**: FEAT
 - **Status**: Cancelled
@@ -15,6 +16,7 @@
 Use the [Opencode Python SDK](https://github.com/anomalyco/opencode-sdk-python/tree/main) to listen to Opencode events programmatically to detect whether the agent is using skills in answering a prompt.
 
 ## Progress Log
+
 - 2026-03-10 10:00 Explored Opencode Python SDK capabilities and installation
 - 2026-03-10 15:00 Identified version compatibility issue between SDK (0.1.0a36) and server (1.2.24)
 - 2026-03-11 09:00 Implemented workaround using custom httpx.Client to remove Content-Type header for empty requests
@@ -22,28 +24,45 @@ Use the [Opencode Python SDK](https://github.com/anomalyco/opencode-sdk-python/t
 - 2026-03-12 09:00 Determined approach requires locally running Opencode server, which violates self-contained tool requirement
 
 ## Decision Log
+
 - This will not work. I am abandoning this approach. The workflow requires a locally running instance of an Opencode server. This tool is meant to be exposed as a slash command. This means that everything needs to be self contained, managed programmatically. I, as the user, will not be booting up an Opencode server for the program to be a client of. I have therefore realised that my use of the Opencode agent needs to be managed as a sub process.
 
 ## Associated Work
+
 - **Pull Requests**: N/A
 - **Commits**: N/A (work performed in separate branches/experimentation)
 - **Issues**: N/A
 
 ## Checkpoints (Optional but Recommended)
+
 - [x] Explore Opencode Python SDK capabilities
 - [x] Identify and resolve connection/compatibility issues
 - [x] Demonstrate successful event listening for skill usage
 - [ ] Implement as self-contained slash command (abandoned - requires local server)
 
 ## Quality Metrics (Optional)
+
 - [Test Coverage]: N/A [Target: ≥80%]
 - [Lint Errors]: 0 [Target: 0]
 - [Performance]: N/A [Target: <Xms]
 
 ## Notes & Blockers
+
 - The Opencode Python SDK (v0.1.0a36) appears to be generated from an older OpenAPI spec than the current server (v1.2.24)
 - Server rejects requests with Content-Type: application/json header when body is empty, causing 400 errors
-- Workaround implemented: Custom httpx.Client that removes Content-Type header for empty-body requests
+- Workaround implemented: Custom httpx.Client that removes Content-Type header for empty-body requests. See below:
+
+```python
+class NoContentTypeClient(httpx.Client):
+    def send(self, request, **kwargs):
+        if not request.content and "content-type" in request.headers:
+            request.headers.pop("content-type")
+        return super().send(request, **kwargs)
+
+
+http_client = NoContentTypeClient()
+```
+
 - Successfully demonstrated that skill usage can be detected via event streaming when connected to a local Opencode server
 - However, the approach requires users to locally run an Opencode server, which conflicts with the requirement for tools to be self-contained and manageable programmatically
 - Alternative approach: Manage Opencode agent as a subprocess rather than as a client to a separately managed server
