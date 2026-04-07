@@ -36,27 +36,18 @@ Defines the evals for a skill. Located at `evals/evals.json` within the skill di
 
 ## [TIMESTAMP]-results.json
 
-Captures the results of running a set of evals for a skill. Located at `evals/results/[TIMESTAMP]-results.json` within the skill directory, where `TIMESTAMP` is the timestamp when the results were collected.
+Captures the results of running a set of evals for a skill. Located at `evals/results/[TIMESTAMP]/results.json` within the skill directory, where `TIMESTAMP` is the timestamp when the results were collected. In addition to collecting results, the program also writes the evals to the results directory so that the results are read in context of their source tests.
 
 ```json
 {
   "skill_name": "example-skill",
   "timestamp": "1773342950488",
   "total_skill_used_pass_rate": 0.86,
-  "total_average_expectations_pass_rate": 0.86,
   "evals": [
     {
       "id": 1,
       "prompt": "User's example prompt",
-      "skill_used": true,
-      "expectations_pass_rate": 0.2,
-      "expectations": [
-        {
-          "text": "The skill used script Y",
-          "passed": true,
-          "evidence": "Y script featured in the agents work log"
-        }
-      ]
+      "skill_used": true
     }
   ]
 }
@@ -71,15 +62,5 @@ Captures the results of running a set of evals for a skill. Located at `evals/re
 - `evals[].id`: The unique identifier of the eval.
 - `evals[].prompt`: The task to execute.
 - `evals[].skill_used`: Whether the skill was used in response to the prompt.
-
-Below are fields related to more advanced testing of the skill. Being advanced, they are all optional.
-
-- `total_average_expectations_pass_rate?`: Optional. The average of the evals expectation pass rate.
-
-- `evals[].expectations_pass_rate?`: Optional. The ratio of expectations that were verified.
-- `evals[].expectations?`: Optional. The list of expectations used to evaluate the skill.
-- `evals[].expectations[].text?`: Optional. The skill behaviour to be verified.
-- `evals[].expectations[].passed?`: Optional. Whether the skill behaviour was verified.
-- `evals[].expectations[].evidence?`: Optional. Any evidence in support of the skill behaviour being verified or not.
 
 ---
