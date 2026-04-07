@@ -43,57 +43,79 @@ def main():
 
     print(f"Running {len(eval_set)} evals for {args.skill_name}")
 
-    cmd = [
-        "opencode",
-        "run", args.prompt,
-        "--format", "json",
-        "--model", "opencode/nemotron-3-super-free"
-    ]
+    eval_results = dict
 
-    start_time = time.time()
-    buffer = ""
 
-    try:
-        openCodeProcess = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
 
-        print("Opencode process started")
+    for eval in eval_set:
+        print(f"Handling eval: {eval['id']}")
 
-        while time.time() - start_time < OPENCODE_TIMEOUT:
-            # poll() returns None when the process is running. So, this block executes when the process has finished, as a sort of clean-up, read remaining bytes.
-            if openCodeProcess.poll() is not None:
-                remaining = openCodeProcess.stdout.read()
-                if remaining:
-                    buffer += remaining.decode("utf-8", errors="replace")
-                    print(f"Remaining buffer: {buffer}")
-                break
+        cmd = [
+            "opencode",
+            "run", eval['prompt'],
+            "--format", "json",
+            "--model", "opencode/nemotron-3-super-free"
+        ]
 
-            # select() means we avoid blocking indefinitely when reading from the child process because we know there is data to be read.
-            ready, _, _ = select.select([openCodeProcess.stdout], [], [], 1)
-            if ready:
-                chunk = openCodeProcess.stdout.readline()
-                if not chunk:
+        start_time = time.time()
+        buffer = ""
+
+        try:
+            openCodeProcess = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+
+            print("Opencode process started")
+
+            while time.time() - start_time < OPENCODE_TIMEOUT:
+                # poll() returns None when the process is running. So, this block executes when the process has finished, as a sort of clean-up, read remaining bytes.
+                if openCodeProcess.poll() is not None:
+                    remaining = openCodeProcess.stdout.read()
+                    if remaining:
+                        buffer += remaining.decode("utf-8", errors="replace")
+                        print(f"Remaining buffer: {buffer}")
                     break
-                print(f"logging chunk {chunk.decode('utf-8').__sizeof__()}")
-                buffer += chunk.decode('utf-8', errors="replace")
-                # print(f"Buffer: {buffer}")
 
-        if time.time() - start_time >= OPENCODE_TIMEOUT:
+                # select() means we avoid blocking indefinitely when reading from the child process because we know there is data to be read.
+                ready, _, _ = select.select([openCodeProcess.stdout], [], [], 1)
+                if ready:
+                    chunk = openCodeProcess.stdout.readline()
+                    if not chunk:
+                        break
+
+                    chunk_decoded = chunk.decode('utf-8', errors="replace")
+                    decoded_chunk_as_json = json.loads(chunk_decoded)
+                    print(f"decoded {decoded_chunk_as_json}")
+
+
+                    if decoded_chunk_as_json.get('part', {}).get('tool') == 'skill':
+                        print("Yeah, we have a skill")
+                        eval_results[eval['id']] = True
+
+                    print(f"Logging the decoded chunk: {chunk_decoded}")
+
+                    buffer += chunk_decoded
+
+            if time.time() - start_time >= OPENCODE_TIMEOUT:
+                openCodeProcess.kill()
+                raise subprocess.TimeoutExpired(cmd, OPENCODE_TIMEOUT)
+        except subprocess.TimeoutExpired as exc:
+            print(f"Process timed out.\n{exc}")
+            raise SystemExit(1, 'Opencode was hanging indefinitely. Timeout hit.')
+        except subprocess.CalledProcessError as exc:
+            print(f"Process failed because did not return a successful return code. Returned {exc.returncode}\n{exc}")
+            raise SystemExit(1, 'Process did not return a successful return code.')
+        finally:
+            print("Cleaning up the Opencode subprocess")
             openCodeProcess.kill()
-            raise subprocess.TimeoutExpired(cmd, OPENCODE_TIMEOUT)
-    except subprocess.TimeoutExpired as exc:
-        print(f"Process timed out.\n{exc}")
-        raise SystemExit(1, 'Opencode was hanging indefinitely. Timeout hit.')
-    except subprocess.CalledProcessError as exc:
-        print(f"Process failed because did not return a successful return code. Returned {exc.returncode}\n{exc}")
-        raise SystemExit(1, 'Process did not return a successful return code.')
-    finally:
-        print("Cleaning up the Opencode subprocess")
-        openCodeProcess.kill()
-        pass
+            pass
+        
+
+
+
+
     
 
 
