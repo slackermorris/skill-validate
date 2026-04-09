@@ -18,7 +18,7 @@ Reviews today's daily notes and git status to extract relevant insights and upda
    - Reflections on progress
 3. Check git status to identify:
    - Files modified
-   - Commits made today
+   - Commits made today on this branch
    - Current branch status
 4. Update the execution plan specified by title in `docs/exec-plans/active/` with:
    - Progress log entries for completed work
@@ -31,6 +31,6 @@ Reviews today's daily notes and git status to extract relevant insights and upda
 
 - The command assumes daily notes use YAML frontmatter with date field
 - Looks for sections: # Decisions, # Action Items, # Notes & Connections, # Reflection
-- For git integration: uses `git log --since="yesterday"` to find recent commits
+- For git integration: uses `git log --since="yesterday"` to find recent commits, commits should be specific to this branch
 - Updates only the Progress Log, Associated Work, Checkpoints, and Notes & Blockers sections
 - Does not modify Metadata or Goal sections
